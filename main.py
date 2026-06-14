@@ -14,7 +14,7 @@ def main():
         "nasa": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"  # replace DEMO_KEY
     }
     
-    chosen_api = "countries"  # TODO: choose one from the above list, or one of your own
+    chosen_api = "open_meteo"  # TODO: choose one from the above list, or one of your own
     url = urls[chosen_api]
     
     # ----------------------------
