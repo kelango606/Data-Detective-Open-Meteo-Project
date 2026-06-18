@@ -1,3 +1,5 @@
+import requests
+
 def fetch_api_data(url, params=None):
     """
     Sends a GET request to the API URL and returns JSON data.
