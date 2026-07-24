@@ -90,13 +90,40 @@ def run_vs_code_dashboard():
     generated_files.append(path_hist)
 
     # ==========================================
+# ==========================================
+ # ==========================================
     # CHART 4: SCATTER PLOT (Temperature vs. Relative Humidity Matrix)
     # ==========================================
+    
+    # 1. Clean data specifically for Figure 4 to avoid silent NaN drops
+    scatter_df = df.dropna(subset=["temperature_2m", "relative_humidity_2m"]).copy()
+    
+    # Fill missing precipitation with 0 and convert numeric columns
+    scatter_df["precipitation"] = pd.to_numeric(scatter_df["precipitation"], errors='coerce').fillna(0)
+    scatter_df["temperature_2m"] = pd.to_numeric(scatter_df["temperature_2m"], errors='coerce')
+    scatter_df["relative_humidity_2m"] = pd.to_numeric(scatter_df["relative_humidity_2m"], errors='coerce')
+
+    # Drop any remaining NaNs after numeric conversion
+    scatter_df = scatter_df.dropna(subset=["temperature_2m", "relative_humidity_2m"])
+
+    # 2. Add an explicit size column so every point is guaranteed visible (>0)
+    # Scales precipitation so zero precipitation equals 6px and higher precipitation scales up
+    scatter_df["marker_display_size"] = 6 + (scatter_df["precipitation"] * 3)
+
     fig_scatter = px.scatter(
-        df, x="temperature_2m", y="relative_humidity_2m", color="vector_epidemiology_status", size="precipitation",
+        scatter_df, 
+        x="temperature_2m", 
+        y="relative_humidity_2m", 
+        color="vector_epidemiology_status", 
+        size="marker_display_size",
+        hover_data={"precipitation": True, "marker_display_size": False},
         title="<b>Figure 4: Bivariate Interaction Profile: Temperature vs. Relative Humidity Matrix</b>",
-        labels={"temperature_2m": "Temperature (°C)", "relative_humidity_2m": "Relative Humidity (%)", 
-                "vector_epidemiology_status": "Risk Evaluation", "precipitation": "Precipitation Size (mm)"},
+        labels={
+            "temperature_2m": "Temperature (°C)", 
+            "relative_humidity_2m": "Relative Humidity (%)", 
+            "vector_epidemiology_status": "Risk Evaluation", 
+            "precipitation": "Precipitation (mm)"
+        },
         color_discrete_map={
             "High Proliferation Risk (Optimal Vector Lifecycle)": "#FF6692",
             "Moderate Risk (Sustained Vector Activity)": "#B6E880",
@@ -104,10 +131,16 @@ def run_vs_code_dashboard():
         },
         template="plotly_dark"
     )
+
+    # Force marker rendering parameters
+    fig_scatter.update_traces(
+        mode='markers',
+        marker=dict(opacity=0.85)
+    )
+
     path_scatter = os.path.join(output_dir, "4_scatter_climate_matrix.html")
     fig_scatter.write_html(path_scatter)
     generated_files.append(path_scatter)
-
     # ==========================================
     # CHART 5: PIE CHART (Molecular Cellular Stress Proportions)
     # ==========================================
